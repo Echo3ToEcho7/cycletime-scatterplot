@@ -4,8 +4,10 @@
     "server": "https://rally1.rallydev.com",
     "sdk": "2.0rc1",
     "javascript": [
+        "HighchartsTheme.js",
         "App.js",
-        "CycleTimeCalculator.js"
+        "CycleTimeCalculator.js",
+        "regression.js"
     ],
     "css": [
         "app.css"

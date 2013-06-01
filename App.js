@@ -51,18 +51,15 @@ Ext.define('CustomApp', {
     ],
 
     initComponent: function() {
+        // debugger
         this.callParent(arguments);
 
         this.drawChartWithStartAndEnd = _.after(2, this.drawChartWithStartAndEnd);
 
         this.down('#startingStateField').on('ready', this._onStartingStateReady, this);
         this.down('#startingStateField').on('ready', this.drawChartWithStartAndEnd, this);
-        // this.down('#startingStateField').on('change', this.drawChartWithStartAndEnd, this);
 
         this.down('#endingStateField').on('ready', this.drawChartWithStartAndEnd, this);
-        // this.down('#endingStateField').on('change', this.drawChartWithStartAndEnd, this);
-
-        // this.down('#storySizeField').on('change', this.drawChartWithStartAndEnd, this);
 
         this.down('#updateButton').on('click', this.drawChartWithStartAndEnd, this);
     },
@@ -76,11 +73,15 @@ Ext.define('CustomApp', {
         this._drawChart(this.down('#startingStateField').getValue(), this.down('#endingStateField').getValue());
     },
 
-    _drawChart: function(fromState, toState) {
-        console.log('drawing chart');
+    _isSingleStorySize: function() {
+        storySizeFieldValues = this.down('#storySizeField').getValues();
+        return (storySizeFieldValues[0] === storySizeFieldValues[1]);
+    },
 
-        startEstimate = this.down('#storySizeField').getValues()[0];
-        stopEstimate = this.down('#storySizeField').getValues()[1];
+    _drawChart: function(fromState, toState) {
+        var storySizeFieldValues = this.down('#storySizeField').getValues();
+        var startEstimate = storySizeFieldValues[0];
+        var stopEstimate = storySizeFieldValues[1];
 
         this.down('#chart').setLoading();
 
@@ -117,6 +118,7 @@ Ext.define('CustomApp', {
 
             calculatorType: 'CycleTimeCalculator',
             calculatorConfig: {
+                singleStorySize: this._isSingleStorySize(),
                 tz: this.getContext().get('workspace').WorkspaceConfiguration.TimeZone,
                 trackLastValueForTheseFields: ['_ValidTo', '_ValidFrom', 'PlanEstimate', 'ScheduleState', 'FormattedID']
             },
@@ -132,12 +134,15 @@ Ext.define('CustomApp', {
                 xAxis: {
                     title: {
                         enabled: true,
-                        text: 'Estimated Size'
+                        text: this._isSingleStorySize() ? '' : 'Estimated Size'
                     },
                     startOnTick: true,
                     endOnTick: true,
                     showLastLabel: true,
-                    min: this.down('#storySizeField').getValues()[0]
+                    min: this.down('#storySizeField').getValues()[0],
+                    labels: {
+                        enabled: !this._isSingleStorySize()
+                    }
                 },
                 yAxis: {
                     title: {
@@ -175,7 +180,7 @@ Ext.define('CustomApp', {
                         },
                         tooltip: {
                             headerFormat: '<b>{series.name}</b><br>',
-                            pointFormat: '<a target="_blank" href="{point.detailUrl}">{point.id}</a><br>Estimate: {point.x}<br>Cycle Time: {point.y}'
+                            pointFormat: '<a target="_blank" href="{point.detailUrl}">{point.id}</a><br>Estimate: {point.x}<br>Cycle Time: {point.y}<br>End Date: {point.lastDate}'
                         }
                     },
                     series: {
