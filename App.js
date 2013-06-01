@@ -2,7 +2,45 @@ Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
 
-    
+    items: [
+        {
+            xtype: 'container',
+            itemId: 'chart'
+        },
+        {
+            xtype: 'container',
+            itemId: 'controls',
+            items: [
+                {
+                    fieldLabel: 'Starting State',
+                    itemId: 'startingStateField',
+                    padding: '20px',
+                    xtype: 'rallyfieldvaluecombobox',
+                    model: 'UserStory',
+                    field: 'ScheduleState'
+                },
+                {
+                    fieldLabel: 'Ending State',
+                    itemId: 'endingStateField',
+                    padding: '20px',
+                    xtype: 'rallyfieldvaluecombobox',
+                    model: 'UserStory',
+                    field: 'ScheduleState',
+                    defaultSelectionToFirst: false
+                }
+            ]
+        }
+    ],
+
+    initComponent: function() {
+        this.callParent(arguments);
+
+        this.down('#startingStateField').on('ready', this._onStartingStateReady, this);
+    },
+
+    _onStartingStateReady: function(combobox) {
+        combobox.setValue('In-Progress');
+    },
 
     launch: function() {
         this._drawChart();
@@ -30,6 +68,11 @@ Ext.define('CustomApp', {
                         property: 'InProgressDate',
                         operator: '!=',
                         value: null
+                    },
+                    {
+                        property: 'DirectChildrenCount',
+                        operator: '=',
+                        value: '0'
                     }
                 ],
                 listeners: {
@@ -38,25 +81,6 @@ Ext.define('CustomApp', {
                     }
                 }
             },
-
-            // storeType: 'Rally.data.lookback.SnapshotStore',
-            // storeConfig: {
-            //     autoLoad: true,
-            //     model: 'User Story',
-            //     fetch: ['FormattedID', 'Name', 'InProgressDate', 'AcceptedDate', 'PlanEstimate'],
-            //     filters: [
-            //         {
-            //             property: 'ScheduleState',
-            //             operator: '=',
-            //             value: 'Accepted'
-            //         },
-            //         {
-            //             property: 'InProgressDate',
-            //             operator: '!=',
-            //             value: null
-            //         }
-            //     ],
-            // },
 
             calculatorType: 'CycleTimeCalculator',
             calculatorConfig: {
@@ -69,10 +93,7 @@ Ext.define('CustomApp', {
                     zoomType: 'xy'
                 },
                 title: {
-                    text: 'Height Versus Weight of 507 Individuals by Gender'
-                },
-                subtitle: {
-                    text: 'Source: Heinz  2003'
+                    text: 'Story Size Versus Cycle Time'
                 },
                 xAxis: {
                     title: {
@@ -81,12 +102,14 @@ Ext.define('CustomApp', {
                     },
                     startOnTick: true,
                     endOnTick: true,
-                    showLastLabel: true
+                    showLastLabel: true,
+                    min: 0
                 },
                 yAxis: {
                     title: {
                         text: 'Cycle Time'
-                    }
+                    },
+                    min: 0
                 },
                 legend: {
                     layout: 'vertical',
@@ -118,12 +141,12 @@ Ext.define('CustomApp', {
                         },
                         tooltip: {
                             headerFormat: '<b>{series.name}</b><br>',
-                            pointFormat: '{point.x} Size, {point.y} Time, <a href="{point.detailUrl}">{point.id}</a> ID'
+                            pointFormat: '<a href="{point.detailUrl}">{point.id}</a><br>Estimate: {point.x}<br>Cycle Time: {point.y}'
                         }
                     }
                 }
             }
         });
-        this.add(myChart);
+        this.down('#chart').add(myChart);
     }
 });
